@@ -52,7 +52,7 @@ task superDrive(){
 				mag = 64;
 			// get calculated heading
 			calcHeading = radRotation - initialHeading;
-			// find the direction needed to move 
+			// find the direction needed to move
 	    moveDirection(joyAngle + calcHeading, mag);
 	    // fix movement drifting
 	    if (abs(joystick.joy1_x1)<minJoy&&abs(joystick.joy1_y1)<minJoy/*&&abs(joystick.joy1_x2)<minJoy*/){
@@ -133,7 +133,7 @@ task heading(){
 		rotation += (currentReading) * (time1[T1] - lastTime) * .001; //modifies the header
 		lastTime = time1[T1]; //sets the last time for the next reading
 		if (time1[T1]>30000){ //this resets the timer after 30 seconds
-			ClearTimerp;(T1);
+			ClearTimer(T1);
 			lastTime = 0;
 		}
 		radRotation = rotation/180*PI;
