@@ -10,21 +10,21 @@
 #include "JoystickDriver.c"  //Include file to "handle" the Bluetooth messages.
 
 float initial; float rotation; float radRotation; int lastTime = 0;//initial is the initial Gyro readings. Rotation is the robot's yaw
-float FLset; float FRset; //stand for front right set and front left set, which refer to the wheels on the robot
-float joyAngle; //joystick angle
+float FLset; float FRset; // these stand for front right set and front left set, which refer to the wheels on the robot
+float joyAngle; // angle of the first joystick
 
-void moveDirection(float angle, float magnitude){
+void moveDirection(float angle, float magnitude){ //sets the motor sets to move at certain speeds depending on the vector given
 	FLset = magnitude * (cos(angle) + sin(angle));
 	FRset = magnitude * (sin(angle) - cos(angle));
 }
 
 void initializeRobot(){
-	// Finds average still gyro reading
-	for(int i = 0; i < 100; i++){
+	// Finds average base gyro reading
+	for(int i = 0; i < 100; i++){ //sums up first hundred gyro readings
 		initial += SensorValue[S4];
 		wait10Msec(1);
 	}
-	initial = initial / 100;
+	initial = initial / 100; //divides by 100 to find the average reading
   return;
 }
 
@@ -33,7 +33,7 @@ task superDrive(){
 	int minJoy = 12;
 	float turning;
 	float mag; //magnitude of the joystick vector
-	float initialHeading = radRotation; float calcHeading = radRotation;
+	float initialHeading = radRotation; float calcHeading = radRotation; // sets a base heading for the 
 	float movementAmount, turningAmount, totalAmount;
 	while(true){
 		// Get joystick values
@@ -53,9 +53,9 @@ task superDrive(){
 			// get calculated heading
 			calcHeading = radRotation - initialHeading;
 			// find the direction needed to move
-	    moveDirection(joyAngle + calcHeading, mag);
-	    // fix movement drifting
-	    if (abs(joystick.joy1_x1)<minJoy&&abs(joystick.joy1_y1)<minJoy/*&&abs(joystick.joy1_x2)<minJoy*/){
+	    	moveDirection(joyAngle + calcHeading, mag);
+	    	// fix movement drifting
+	    	if (abs(joystick.joy1_x1)<minJoy&&abs(joystick.joy1_y1)<minJoy/*&&abs(joystick.joy1_x2)<minJoy*/){
 				FLset=0;FRset=0;
 			}
 			// find turning magnitude
@@ -70,7 +70,7 @@ task superDrive(){
 			movementAmount = (mag*3)/totalAmount;
 			turningAmount = turning/totalAmount;
 			// Apply finished values to motors
-	  	motor[FL] = FLset*movementAmount+turning*turningAmount;
+	  		motor[FL] = FLset*movementAmount+turning*turningAmount;
 			motor[FR] = FRset*movementAmount-turning*turningAmount;
 			motor[BL] = FRset*movementAmount+turning*turningAmount;
 			motor[BR] = FLset*movementAmount-turning*turningAmount;
