@@ -9,8 +9,9 @@
 
 #include "JoystickDriver.c"  // Include file to "handle" the Bluetooth messages.
 
-float initial; float rotation; float radRotation; int lastTime = 0;//initial is the initial Gyro readings. Rotation is the robot's yaw
-float FLset; float FRset; // these stand for front right set and front left set, which refer to the wheels on the robot
+float initial; float heading; float radheading; int lastTime = 0;//initial is the initial Gyro readings. heading is the robot's yaw
+float FLset; float FRset; // these stand for front right set and front left set, which refer to wheels on the robot 
+//FL set is the front-left motor and the back-right motor, and FR set is the other two motors
 float joyAngle; // angle of the first joystick
 
 void moveDirection(float angle, float magnitude){ // sets the motor sets to move at certain speeds depending on the vector given
@@ -28,14 +29,14 @@ void initializeRobot(){
   return;
 }
 
-// This is the superdrive task. I you can think of any better names, please tell me :P
+// This is the superdrive task. If you can think of any better names, please tell me :P
 // This task incorporates two modes, regular mecanum driving and free-spinning mode
 task superDrive(){
 	float x1,y1,x2,y2,LF,RF,LB,RB= 0;
 	int minJoy = 12;
 	float turning;
 	float mag; // magnitude of the joystick vector
-	float initialHeading = radRotation; float calcHeading = radRotation; // sets a base heading for the 
+	float initialHeading = radheading; float calcHeading = radheading; // sets a base heading for the 
 	float movementAmount, turningAmount, totalAmount; // for apportioning power to turning and moving
 	while(true){
 		// Get joystick values
@@ -43,7 +44,7 @@ task superDrive(){
 		x2 = joystick.joy1_x2 * .5;y2 = joystick.joy1_y2 * .5;
 		// function for making new initial heading
 		if (joy1Btn(5)==1){
-			initialHeading = radRotation;
+			initialHeading = radheading;
 		}
 		// starts free-spinning mode
 		if (joy1Btn(6)==1){
@@ -54,7 +55,7 @@ task superDrive(){
 			if (mag>64)
 				mag = 64;
 			// get calculated heading
-			calcHeading = radRotation - initialHeading;
+			calcHeading = radheading - initialHeading;
 			// find the direction needed to move
 	    	moveDirection(joyAngle + calcHeading, mag);
 	    	// fix movement drifting
@@ -102,6 +103,7 @@ task superDrive(){
 	}
 }
 
+//basic mecanum wheel drive
 task drive(){
 	float x1,y1,x2,y2,LF,RF,LB,RB= 0;
 	int minJoy = 12;
@@ -135,13 +137,13 @@ task heading(){
 	ClearTimer(T1); // sets timer to 0
 	while(true){
 		int currentReading = SensorValue[gyro] - initial; // gets the new sensor reading
-		rotation += (currentReading) * (time1[T1] - lastTime) * .001; // modifies the header
+		heading += (currentReading) * (time1[T1] - lastTime) * .001; // modifies the header
 		lastTime = time1[T1]; // sets the last time for the next reading
 		if (time1[T1]>30000){ // this resets the timer after 30 seconds
 			ClearTimer(T1);
 			lastTime = 0;
 		}
-		radRotation = rotation/180*PI; // the heading expressed in radians
+		radheading = heading/180*PI; // the heading expressed in radians
 		wait10Msec(1); // lets other tasks run
 	}
 }
@@ -152,7 +154,7 @@ task display(){
 	while (true){
 		eraseDisplay();
 		//nxtDisplayCenteredTextLine(0, "Color: %d", c);
-		nxtDisplayCenteredTextLine(0, "Heading: %d", rotation);
+		nxtDisplayCenteredTextLine(0, "Heading: %d", heading);
 		nxtDisplayCenteredTextLine(1, "joyAngle: %d", joyAngle);
 		wait1Msec(20);
 	}
@@ -163,7 +165,7 @@ task main(){
 
   waitForStart();   // wait for start of tele-op phase
   StartTask(display);
-	StartTask(heading);
+  StartTask(heading);
   //StartTask(drive);
   StartTask(superDrive);
   while (true)
